@@ -2,7 +2,9 @@ import { useLayoutEffect } from 'react';
 import { Image, ScrollView, StyleSheet, Text } from 'react-native';
 import { RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { useFavorites } from '../context/FavoritesContext';
+import type { RootState } from '../redux/store';
+import { useSelector, useDispatch } from 'react-redux';
+import { addFavorite, removeFavorite } from '../redux/favoritesSlice';
 import { Colours } from '../assets/styles/Colours';
 import Meal from '../models/meal';
 import MealDetails from '../components/MealDetails';
@@ -16,14 +18,17 @@ type Props = {
 };
 
 export default function MealDetailsScreen({ route, navigation }: Props): JSX.Element {
-    const favoritesContext = useFavorites();
+    const favoriteMealIds: Array<string> = useSelector((state: RootState) => state.favoriteMeals.favorites);
+    const dispatch = useDispatch();
     const meal: Meal = route.params?.meal;
     const mealIngredients: Array<string> = meal.ingredients;
     const preparationSteps: Array<string> = meal.steps;
-    const isMealFavourite = favoritesContext.favorites.includes(meal.id);
+    const isMealFavourite = favoriteMealIds.includes(meal.id);
 
-    const toggleFavourites = (): void => {
-        return isMealFavourite ? favoritesContext.remove(meal.id) : favoritesContext.add(meal.id);
+    const toggleFavourites = () => {
+        return isMealFavourite
+            ? dispatch(removeFavorite({ mealId: meal.id }))
+            : dispatch(addFavorite({ mealId: meal.id }));
     };
 
     useLayoutEffect(() => {
